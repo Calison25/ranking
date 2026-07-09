@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { CandidateWithEvaluations, Evaluation, EvaluationInput } from '../../../lib/domain/index.js';
+import type { CandidateWithEvaluations } from '../../../lib/domain/index.js';
+import { makeEvaluationInput, makeEvaluation } from '../../../lib/domain/__fixtures__/evaluation.js';
 import { ApiError, createCandidate, createEvaluation, deleteCandidate, fetchCandidates } from '../client.js';
 
 function mockResponse(status: number, body: unknown, jsonThrows = false): Response {
@@ -96,8 +97,8 @@ describe('createCandidate', () => {
 });
 
 describe('createEvaluation', () => {
-  const input: EvaluationInput = { comunicacao: 5, tecnico: 4, softskill: 3, obs: 'ok' };
-  const created: Evaluation = { id: 'eval-1', ...input, date: 1700000000000 };
+  const input = makeEvaluationInput({ comunicacao: 5, web: 4, elaboracaoPlano: 3, obs: 'ok' });
+  const created = makeEvaluation({ id: 'eval-1', date: 1700000000000, ...input });
 
   it('envia POST com Content-Type application/json e body correto', async () => {
     const fetchMock = stubFetch(mockResponse(201, created));

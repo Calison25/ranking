@@ -76,14 +76,7 @@ export function createRedisStore(): CandidateStore {
     },
 
     async addEvaluation(id: string, input: EvaluationInput): Promise<AddEvaluationResult> {
-      const evaluation: Evaluation = {
-        id: genEvaluationId(),
-        comunicacao: input.comunicacao,
-        tecnico: input.tecnico,
-        softskill: input.softskill,
-        obs: input.obs,
-        date: Date.now(),
-      };
+      const evaluation: Evaluation = { id: genEvaluationId(), ...input, date: Date.now() };
       const result = await redis.eval<(string | number)[], number>(
         ADD_EVALUATION_SCRIPT,
         [CANDIDATES_KEY, evalsKey(id)],

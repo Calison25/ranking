@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { LINKEDIN_MAX_LENGTH, NOME_MAX_LENGTH, OBS_MAX_LENGTH } from '../constants.js';
+import { makeEvaluationInput } from '../__fixtures__/evaluation.js';
+import { CRITERIA, LINKEDIN_MAX_LENGTH, NOME_MAX_LENGTH, OBS_MAX_LENGTH } from '../constants.js';
 import { validateCandidateInput, validateEvaluationInput } from '../validation.js';
 
 describe('validateCandidateInput', () => {
@@ -75,8 +76,11 @@ describe('validateCandidateInput', () => {
   });
 });
 
+const softCriteria = CRITERIA.filter((c) => c.section === 'soft');
+const hardCriteria = CRITERIA.filter((c) => c.section === 'hard');
+
 describe('validateEvaluationInput', () => {
-  const base = { comunicacao: 3, tecnico: 3, softskill: 3, obs: '' };
+  const base = makeEvaluationInput();
 
   it('rejeita raw null', () => {
     expect(validateEvaluationInput(null).ok).toBe(false);
@@ -86,36 +90,96 @@ describe('validateEvaluationInput', () => {
     expect(validateEvaluationInput(42).ok).toBe(false);
   });
 
-  it('rejeita nota de comunicação fora de 1-5 (0)', () => {
-    expect(validateEvaluationInput({ ...base, comunicacao: 0 }).ok).toBe(false);
+  describe.each(softCriteria)('critério soft $key ($label)', (criterion) => {
+    it('rejeita 0', () => {
+      expect(validateEvaluationInput({ ...base, [criterion.key]: 0 })).toEqual({
+        ok: false,
+        error: `Nota de ${criterion.label} deve ser um inteiro entre 1 e 5`,
+      });
+    });
+
+    it('rejeita 6', () => {
+      expect(validateEvaluationInput({ ...base, [criterion.key]: 6 })).toEqual({
+        ok: false,
+        error: `Nota de ${criterion.label} deve ser um inteiro entre 1 e 5`,
+      });
+    });
+
+    it('rejeita 3.5 (não inteiro)', () => {
+      expect(validateEvaluationInput({ ...base, [criterion.key]: 3.5 }).ok).toBe(false);
+    });
+
+    it('rejeita null', () => {
+      expect(validateEvaluationInput({ ...base, [criterion.key]: null }).ok).toBe(false);
+    });
+
+    it('aceita 1..5', () => {
+      for (let n = 1; n <= 5; n++) {
+        expect(validateEvaluationInput({ ...base, [criterion.key]: n }).ok).toBe(true);
+      }
+    });
   });
 
-  it('rejeita nota de comunicação fora de 1-5 (6)', () => {
-    expect(validateEvaluationInput({ ...base, comunicacao: 6 }).ok).toBe(false);
+  describe.each(hardCriteria)('critério hard $key ($label)', (criterion) => {
+    it('aceita null', () => {
+      const result = validateEvaluationInput({ ...base, [criterion.key]: null });
+      expect(result.ok).toBe(true);
+      if (result.ok) expect(result.value[criterion.key]).toBeNull();
+    });
+
+    it('rejeita string "na"', () => {
+      expect(validateEvaluationInput({ ...base, [criterion.key]: 'na' })).toEqual({
+        ok: false,
+        error: `Nota de ${criterion.label} deve ser "Não sei opinar" ou um inteiro entre 1 e 5`,
+      });
+    });
+
+    it('rejeita 0', () => {
+      expect(validateEvaluationInput({ ...base, [criterion.key]: 0 })).toEqual({
+        ok: false,
+        error: `Nota de ${criterion.label} deve ser "Não sei opinar" ou um inteiro entre 1 e 5`,
+      });
+    });
+
+    it('rejeita 6', () => {
+      expect(validateEvaluationInput({ ...base, [criterion.key]: 6 })).toEqual({
+        ok: false,
+        error: `Nota de ${criterion.label} deve ser "Não sei opinar" ou um inteiro entre 1 e 5`,
+      });
+    });
+
+    it('aceita 1..5', () => {
+      for (let n = 1; n <= 5; n++) {
+        expect(validateEvaluationInput({ ...base, [criterion.key]: n }).ok).toBe(true);
+      }
+    });
   });
 
-  it('rejeita nota não inteira (3.5)', () => {
-    expect(validateEvaluationInput({ ...base, softskill: 3.5 }).ok).toBe(false);
+  it('rejeita veredicto ausente', () => {
+    const { veredicto: _veredicto, ...rest } = base;
+    expect(validateEvaluationInput(rest)).toEqual({
+      ok: false,
+      error: 'Veredicto é obrigatório',
+    });
   });
 
-  it('aceita tecnico null', () => {
-    const result = validateEvaluationInput({ ...base, tecnico: null });
+  it('rejeita veredicto inválido ("sim")', () => {
+    expect(validateEvaluationInput({ ...base, veredicto: 'sim' })).toEqual({
+      ok: false,
+      error: 'Veredicto é obrigatório',
+    });
+  });
+
+  it('aceita veredicto "ajuda"', () => {
+    const result = validateEvaluationInput({ ...base, veredicto: 'ajuda' });
     expect(result.ok).toBe(true);
-    if (result.ok) expect(result.value.tecnico).toBeNull();
+    if (result.ok) expect(result.value.veredicto).toBe('ajuda');
   });
 
-  it('rejeita tecnico undefined', () => {
-    const { tecnico: _tecnico, ...rest } = base;
-    expect(validateEvaluationInput(rest).ok).toBe(false);
-  });
-
-  it('rejeita tecnico como string "na"', () => {
-    expect(validateEvaluationInput({ ...base, tecnico: 'na' }).ok).toBe(false);
-  });
-
-  it('rejeita tecnico fora de 1-5 (0 e 6)', () => {
-    expect(validateEvaluationInput({ ...base, tecnico: 0 }).ok).toBe(false);
-    expect(validateEvaluationInput({ ...base, tecnico: 6 }).ok).toBe(false);
+  it('aceita veredicto "nao_ajuda"', () => {
+    const result = validateEvaluationInput({ ...base, veredicto: 'nao_ajuda' });
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.value.veredicto).toBe('nao_ajuda');
   });
 
   it('obs é opcional, trimada e default vazio', () => {
@@ -127,18 +191,6 @@ describe('validateEvaluationInput', () => {
     const comObs = validateEvaluationInput({ ...base, obs: '  boa comunicação  ' });
     expect(comObs.ok).toBe(true);
     if (comObs.ok) expect(comObs.value.obs).toBe('boa comunicação');
-  });
-
-  it('mensagens de erro são específicas por campo', () => {
-    expect(validateEvaluationInput({ ...base, comunicacao: 0 })).toEqual({
-      ok: false,
-      error: 'Nota de Comunicação deve ser um inteiro entre 1 e 5',
-    });
-    expect(validateEvaluationInput({ ...base, softskill: 0 })).toEqual({
-      ok: false,
-      error: 'Nota de Soft skill deve ser um inteiro entre 1 e 5',
-    });
-    expect(validateEvaluationInput({ ...base, tecnico: 6 }).ok).toBe(false);
   });
 
   it('aceita obs no limite exato de tamanho', () => {
@@ -154,5 +206,13 @@ describe('validateEvaluationInput', () => {
       ok: false,
       error: 'Observações muito longas (máximo 2000 caracteres)',
     });
+  });
+
+  it('input completo válido é aceito com os 9 campos + veredicto', () => {
+    const result = validateEvaluationInput(base);
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value).toEqual(base);
+    }
   });
 });

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { ChangeEvent, CSSProperties, MouseEvent } from 'react';
-import { CRITERIA, MAX_EVALUATIONS, NOTE_LABELS, NOTE_LEGEND, OBS_MAX_LENGTH } from '../../lib/domain/index.js';
-import type { CandidateWithEvaluations, EvaluationInput } from '../../lib/domain/index.js';
+import { CRITERIA, MAX_EVALUATIONS, NOTE_LABELS, NOTE_LEGEND, OBS_MAX_LENGTH, VEREDICTO_OPTIONS } from '../../lib/domain/index.js';
+import type { CandidateWithEvaluations, EvaluationInput, Veredicto } from '../../lib/domain/index.js';
 
 type CriterionKey = (typeof CRITERIA)[number]['key'];
 type ScoreValue = number | 'na' | null;
@@ -13,7 +13,7 @@ interface EvaluationModalProps {
   onSave: (input: EvaluationInput) => Promise<void>;
 }
 
-const INITIAL_SCORES: Scores = { comunicacao: null, tecnico: null, softskill: null };
+const INITIAL_SCORES: Scores = Object.fromEntries(CRITERIA.map((criterion) => [criterion.key, null])) as Scores;
 
 const overlayStyle: CSSProperties = {
   position: 'fixed',
@@ -77,17 +77,27 @@ const legendStyle: CSSProperties = {
   textAlign: 'center',
 };
 
-const criteriaListStyle: CSSProperties = { display: 'flex', flexDirection: 'column', gap: 18, marginTop: 18 };
+const sectionTitleStyle: CSSProperties = {
+  fontSize: 12,
+  fontWeight: 700,
+  color: 'var(--muted)',
+  letterSpacing: '.06em',
+  textTransform: 'uppercase',
+  marginTop: 22,
+};
+
+const criteriaListStyle: CSSProperties = { display: 'flex', flexDirection: 'column', gap: 18, marginTop: 14 };
 
 const criterionHeaderStyle: CSSProperties = {
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'baseline',
-  marginBottom: 9,
+  marginBottom: 2,
   gap: 10,
 };
 
 const criterionLabelStyle: CSSProperties = { fontWeight: 600, fontSize: 15, color: 'var(--ink)' };
+const criterionSubtitleStyle: CSSProperties = { fontSize: 12, color: 'var(--muted)', marginBottom: 9 };
 const criterionValLabelStyle: CSSProperties = { fontSize: 13, color: 'var(--ac)', fontWeight: 600 };
 
 const buttonsRowStyle: CSSProperties = { display: 'flex', gap: 8 };
@@ -112,7 +122,7 @@ const naBaseStyle: CSSProperties = {
   border: '1px solid',
 };
 
-const obsWrapperStyle: CSSProperties = { marginTop: 20 };
+const obsWrapperStyle: CSSProperties = { marginTop: 14 };
 const obsLabelStyle: CSSProperties = { fontWeight: 600, fontSize: 13, color: 'var(--muted)' };
 const textareaStyle: CSSProperties = {
   width: '100%',
@@ -126,6 +136,22 @@ const textareaStyle: CSSProperties = {
   outline: 'none',
   lineHeight: 1.5,
   background: 'var(--surface)',
+};
+
+const veredictoOptionsStyle: CSSProperties = { display: 'flex', flexDirection: 'column', gap: 8, marginTop: 10 };
+
+const veredictoLabelBaseStyle: CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 9,
+  padding: '10px 13px',
+  borderRadius: 10,
+  border: '1px solid var(--border)',
+  fontSize: 14,
+  fontWeight: 600,
+  cursor: 'pointer',
+  background: 'var(--surface)',
+  color: 'var(--ink)',
 };
 
 const errorStyle: CSSProperties = {
@@ -163,31 +189,43 @@ function valLabelFor(value: ScoreValue): string {
   return `${value} — ${NOTE_LABELS[value]}`;
 }
 
+function veredictoStyleFor(value: (typeof VEREDICTO_OPTIONS)[number]['value'], selected: boolean): CSSProperties {
+  if (!selected) return veredictoLabelBaseStyle;
+  if (value === 'ajuda') {
+    return { ...veredictoLabelBaseStyle, background: 'var(--acSoft)', color: 'var(--ac)', borderColor: 'var(--ac)' };
+  }
+  return { ...veredictoLabelBaseStyle, background: 'var(--warnSoft)', color: 'var(--warn)', borderColor: 'var(--warn)' };
+}
+
 export default function EvaluationModal({ candidate, onClose, onSave }: EvaluationModalProps) {
   const [scores, setScores] = useState<Scores>(INITIAL_SCORES);
+  const [veredicto, setVeredicto] = useState<Veredicto | null>(null);
   const [obs, setObs] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const attemptNumber = candidate.evaluations.length + 1;
-  const canSave = CRITERIA.every((criterion) => isSet(scores[criterion.key]));
+  const canSave = CRITERIA.every((criterion) => isSet(scores[criterion.key])) && veredicto !== null;
 
   function setScore(key: CriterionKey, value: number | 'na'): void {
     setScores((prev) => ({ ...prev, [key]: value }));
   }
 
   async function handleSave(): Promise<void> {
-    if (!canSave || submitting) return;
+    if (!canSave || submitting || veredicto === null) return;
     setSubmitting(true);
     setSubmitError(null);
     try {
-      const tecnicoValue = scores.tecnico;
-      await onSave({
-        comunicacao: scores.comunicacao as number,
-        tecnico: tecnicoValue === 'na' ? null : (tecnicoValue as number),
-        softskill: scores.softskill as number,
-        obs: obs.trim(),
+      const entries = CRITERIA.map((criterion) => {
+        const value = scores[criterion.key];
+        return [criterion.key, value === 'na' ? null : value] as const;
       });
+      const input = {
+        ...Object.fromEntries(entries),
+        veredicto,
+        obs: obs.trim(),
+      } as EvaluationInput;
+      await onSave(input);
       onClose();
     } catch (err) {
       setSubmitError(err instanceof Error ? err.message : 'Erro ao salvar avaliação');
@@ -202,6 +240,47 @@ export default function EvaluationModal({ candidate, onClose, onSave }: Evaluati
 
   function stopPropagation(event: MouseEvent<HTMLDivElement>): void {
     event.stopPropagation();
+  }
+
+  const softCriteria = CRITERIA.filter((criterion) => criterion.section === 'soft');
+  const hardCriteria = CRITERIA.filter((criterion) => criterion.section === 'hard');
+
+  function renderCriterion(criterion: (typeof CRITERIA)[number]) {
+    const value = scores[criterion.key];
+    return (
+      <div key={criterion.key}>
+        <div style={criterionHeaderStyle}>
+          <span style={criterionLabelStyle}>{criterion.label}</span>
+          <span style={criterionValLabelStyle}>{valLabelFor(value)}</span>
+        </div>
+        <div style={criterionSubtitleStyle}>{criterion.subtitle}</div>
+        <div style={buttonsRowStyle}>
+          {[1, 2, 3, 4, 5].map((n) => {
+            const selected = value === n;
+            const buttonStyle: CSSProperties = selected
+              ? { ...noteBaseStyle, background: 'var(--ac)', color: '#fff', borderColor: 'var(--ac)' }
+              : { ...noteBaseStyle, background: 'var(--surface)', color: 'var(--ink)', borderColor: 'var(--border)' };
+            return (
+              <button key={n} onClick={() => setScore(criterion.key, n)} style={buttonStyle}>
+                {n}
+              </button>
+            );
+          })}
+        </div>
+        {criterion.hasNA && (
+          <button
+            onClick={() => setScore(criterion.key, 'na')}
+            style={
+              value === 'na'
+                ? { ...naBaseStyle, background: 'var(--ac)', color: '#fff', borderColor: 'var(--ac)' }
+                : { ...naBaseStyle, background: 'var(--surface)', color: 'var(--muted)', borderColor: 'var(--border)' }
+            }
+          >
+            Não sei opinar
+          </button>
+        )}
+      </div>
+    );
   }
 
   return (
@@ -221,54 +300,41 @@ export default function EvaluationModal({ candidate, onClose, onSave }: Evaluati
 
         <div style={legendStyle}>{NOTE_LEGEND}</div>
 
-        <div style={criteriaListStyle}>
-          {CRITERIA.map((criterion) => {
-            const value = scores[criterion.key];
-            return (
-              <div key={criterion.key}>
-                <div style={criterionHeaderStyle}>
-                  <span style={criterionLabelStyle}>{criterion.label}</span>
-                  <span style={criterionValLabelStyle}>{valLabelFor(value)}</span>
-                </div>
-                <div style={buttonsRowStyle}>
-                  {[1, 2, 3, 4, 5].map((n) => {
-                    const selected = value === n;
-                    const buttonStyle: CSSProperties = selected
-                      ? { ...noteBaseStyle, background: 'var(--ac)', color: '#fff', borderColor: 'var(--ac)' }
-                      : { ...noteBaseStyle, background: 'var(--surface)', color: 'var(--ink)', borderColor: 'var(--border)' };
-                    return (
-                      <button key={n} onClick={() => setScore(criterion.key, n)} style={buttonStyle}>
-                        {n}
-                      </button>
-                    );
-                  })}
-                </div>
-                {criterion.hasNA && (
-                  <button
-                    onClick={() => setScore(criterion.key, 'na')}
-                    style={
-                      value === 'na'
-                        ? { ...naBaseStyle, background: 'var(--ac)', color: '#fff', borderColor: 'var(--ac)' }
-                        : { ...naBaseStyle, background: 'var(--surface)', color: 'var(--muted)', borderColor: 'var(--border)' }
-                    }
-                  >
-                    Não sei opinar
-                  </button>
-                )}
-              </div>
-            );
-          })}
-        </div>
+        <div style={sectionTitleStyle}>Soft skills</div>
+        <div style={criteriaListStyle}>{softCriteria.map(renderCriterion)}</div>
+
+        <div style={sectionTitleStyle}>Hard skills</div>
+        <div style={criteriaListStyle}>{hardCriteria.map(renderCriterion)}</div>
+
+        <div style={sectionTitleStyle}>Veredicto</div>
 
         <div style={obsWrapperStyle}>
           <label style={obsLabelStyle}>Observações</label>
           <textarea
             value={obs}
             onChange={(event: ChangeEvent<HTMLTextAreaElement>) => setObs(event.target.value)}
-            placeholder="Anotações sobre o candidato (opcional)"
+            placeholder="Comentário geral sobre o candidato (opcional)"
             maxLength={OBS_MAX_LENGTH}
             style={textareaStyle}
           />
+        </div>
+
+        <div style={veredictoOptionsStyle} role="radiogroup" aria-label="Veredicto">
+          {VEREDICTO_OPTIONS.map((option) => {
+            const selected = veredicto === option.value;
+            return (
+              <label key={option.value} style={veredictoStyleFor(option.value, selected)}>
+                <input
+                  type="radio"
+                  name="veredicto"
+                  value={option.value}
+                  checked={selected}
+                  onChange={() => setVeredicto(option.value)}
+                />
+                {option.label}
+              </label>
+            );
+          })}
         </div>
 
         {submitError && <div style={errorStyle}>{submitError}</div>}

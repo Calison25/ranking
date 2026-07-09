@@ -2,7 +2,8 @@
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { CandidateWithEvaluations, EvaluationInput } from '../../../lib/domain/index.js';
+import type { CandidateWithEvaluations } from '../../../lib/domain/index.js';
+import { makeEvaluationInput } from '../../../lib/domain/__fixtures__/evaluation.js';
 
 declare global {
   // eslint-disable-next-line no-var
@@ -58,12 +59,12 @@ const sampleCandidate: CandidateWithEvaluations = {
   evaluations: [],
 };
 
-const sampleEvaluationInput: EvaluationInput = {
+const sampleEvaluationInput = makeEvaluationInput({
   comunicacao: 5,
-  tecnico: 4,
-  softskill: 3,
+  web: 4,
+  elaboracaoPlano: 3,
   obs: 'ok',
-};
+});
 
 describe('useCandidates', () => {
   let container: HTMLDivElement;

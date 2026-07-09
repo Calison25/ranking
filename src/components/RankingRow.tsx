@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
-import { round1 } from '../../lib/domain/index.js';
-import type { CandidateWithStats } from '../../lib/domain/index.js';
-import { formatDate } from '../utils/format.js';
+import { round1, VEREDICTO_BADGE } from '../../lib/domain/index.js';
+import type { CandidateWithStats, Veredicto } from '../../lib/domain/index.js';
+import { formatAjudaAggregate, formatDate, formatGroupScores } from '../utils/format.js';
 
 interface RankingRowProps {
   rank: number;
@@ -26,6 +26,7 @@ const rankBaseStyle: CSSProperties = {
 };
 
 const infoStyle: CSSProperties = { flex: 1, minWidth: 0 };
+const nameRowStyle: CSSProperties = { display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' };
 const nameStyle: CSSProperties = { fontWeight: 600, fontSize: 17, color: 'var(--ink)' };
 const metaStyle: CSSProperties = { fontSize: 13, color: 'var(--muted)', marginTop: 2 };
 
@@ -68,21 +69,36 @@ const obsCardStyle: CSSProperties = {
 const obsHeaderStyle: CSSProperties = {
   display: 'flex',
   justifyContent: 'space-between',
+  alignItems: 'center',
   gap: 10,
   fontSize: 12,
   color: 'var(--muted)',
-  marginBottom: 7,
+  marginBottom: 8,
   flexWrap: 'wrap',
 };
 
-const obsScoreStyle: CSSProperties = { fontWeight: 600 };
+const scoreLinesStyle: CSSProperties = { display: 'flex', flexDirection: 'column', gap: 3, marginBottom: 8 };
+const scoreLineStyle: CSSProperties = { fontSize: 12, color: 'var(--muted)', display: 'flex', gap: 6 };
+const scoreLineLabelStyle: CSSProperties = { fontWeight: 600 };
 
 const obsTextStyle: CSSProperties = { fontSize: 14, color: 'var(--ink)', lineHeight: 1.5 };
 const obsTextEmptyStyle: CSSProperties = { fontSize: 14, color: 'var(--faint)', fontStyle: 'italic', lineHeight: 1.5 };
 
-function scoreLineFor(comunicacao: number, tecnico: number | null, softskill: number): string {
-  const tecnicoLabel = tecnico !== null ? tecnico : 'n/a';
-  return `Comunicação ${comunicacao}  ·  Técnico ${tecnicoLabel}  ·  Soft skill ${softskill}`;
+/** Pill compacto usado tanto no agregado do candidato quanto no veredicto por avaliação. */
+function pillStyle(positive: boolean): CSSProperties {
+  return {
+    display: 'inline-block',
+    fontSize: 11,
+    fontWeight: 600,
+    padding: '2px 8px',
+    borderRadius: 999,
+    background: positive ? 'var(--acSoft)' : 'var(--warnSoft)',
+    color: positive ? 'var(--ac)' : 'var(--warn)',
+  };
+}
+
+function veredictoPillStyle(veredicto: Veredicto): CSSProperties {
+  return pillStyle(veredicto === 'ajuda');
 }
 
 export default function RankingRow({ rank, candidate, expanded, onToggle }: RankingRowProps) {
@@ -94,14 +110,20 @@ export default function RankingRow({ rank, candidate, expanded, onToggle }: Rank
     border: isTop ? '1px solid var(--acSoft)' : '1px solid var(--border)',
   };
   const evaluationWord = candidate.count === 1 ? 'avaliação' : 'avaliações';
-  const metaLabel = `${candidate.count} ${evaluationWord}  ·  média ${round1(candidate.avg)}`;
+  const metaLabel = `${candidate.count} ${evaluationWord} · média ${round1(candidate.avg)}`;
+  const aggregateIsPositive = candidate.ajudaVotes * 2 >= candidate.count;
 
   return (
     <div style={rowStyle}>
       <div style={headerStyle} onClick={onToggle}>
         <div style={rankStyle}>{rankLabel}</div>
         <div style={infoStyle}>
-          <div style={nameStyle}>{candidate.nome}</div>
+          <div style={nameRowStyle}>
+            <span style={nameStyle}>{candidate.nome}</span>
+            <span style={pillStyle(aggregateIsPositive)}>
+              {formatAjudaAggregate(candidate.ajudaVotes, candidate.count)}
+            </span>
+          </div>
           <div style={metaStyle}>{metaLabel}</div>
         </div>
         <div style={valueWrapperStyle}>
@@ -116,10 +138,20 @@ export default function RankingRow({ rank, candidate, expanded, onToggle }: Rank
           {candidate.evaluations.map((evaluation) => (
             <div key={evaluation.id} style={obsCardStyle}>
               <div style={obsHeaderStyle}>
-                <span style={obsScoreStyle}>
-                  {scoreLineFor(evaluation.comunicacao, evaluation.tecnico, evaluation.softskill)}
+                <span style={veredictoPillStyle(evaluation.veredicto)}>
+                  {VEREDICTO_BADGE[evaluation.veredicto]}
                 </span>
                 <span>{formatDate(evaluation.date)}</span>
+              </div>
+              <div style={scoreLinesStyle}>
+                <div style={scoreLineStyle}>
+                  <span style={scoreLineLabelStyle}>Soft</span>
+                  <span>{formatGroupScores(evaluation, 'soft')}</span>
+                </div>
+                <div style={scoreLineStyle}>
+                  <span style={scoreLineLabelStyle}>Hard</span>
+                  <span>{formatGroupScores(evaluation, 'hard')}</span>
+                </div>
               </div>
               <div style={evaluation.obs ? obsTextStyle : obsTextEmptyStyle}>
                 {evaluation.obs ? evaluation.obs : 'Sem observação registrada.'}

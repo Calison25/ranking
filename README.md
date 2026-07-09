@@ -2,7 +2,14 @@
 
 Aplicação web simples para registrar candidatos e avaliações de entrevista, e acompanhar um ranking geral por pontuação. É um **projeto temporário**, feito para uso interno pontual: **não tem login/autenticação** — qualquer pessoa com o link acessa e edita os mesmos dados.
 
-Cada candidato pode receber até **4 avaliações**, cada uma com três critérios (Comunicação, Conhecimento técnico, Soft skill) em notas de 1 a 5 (o critério "Conhecimento técnico" também aceita "Não sei opinar"). O ranking ordena os candidatos pela soma total de pontos das avaliações registradas.
+Cada candidato pode receber até **4 avaliações**. Cada avaliação cobre **9 critérios** em notas de 1 a 5, divididos em dois grupos:
+
+- **Soft skills** (sempre obrigatórios): Comunicação, Organização, Proatividade, Cultura.
+- **Hard skills / IA** (aceitam "Não sei opinar"): Elaboração de Plano (IA), Prompt Engineering (IA), Conhecimento de Modelos, Web, Conhecimentos da Aplicação.
+
+Uma avaliação soma no máximo **45 pontos**. Além das notas, todo avaliador registra um **veredicto obrigatório** — "Vai ajudar a Agilize" ou "Não vai ajudar a Agilize" — com observações opcionais.
+
+O ranking ordena os candidatos por: (1) **percentual de veredictos "vai ajudar"** desc, (2) soma total de pontos desc, (3) média das avaliações desc, (4) nome asc.
 
 ## Stack
 

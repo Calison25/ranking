@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
+import { makeEvaluationInput } from '../../domain/__fixtures__/evaluation.js';
 import { MAX_EVALUATIONS } from '../../domain/index.js';
-import type { EvaluationInput } from '../../domain/index.js';
 import { createMemoryStore } from '../../storage/memoryStore.js';
 import type { CandidateStore } from '../../storage/store.js';
 import {
@@ -10,12 +10,7 @@ import {
   handleListCandidates,
 } from '../handlers.js';
 
-const validEvaluation: EvaluationInput = {
-  comunicacao: 3,
-  tecnico: null,
-  softskill: 5,
-  obs: '',
-};
+const validEvaluation = makeEvaluationInput({ web: null });
 
 async function createCandidate(store: CandidateStore, nome = 'Ana'): Promise<string> {
   const res = await handleCreateCandidate(store, { nome, linkedin: '' });
@@ -67,12 +62,7 @@ describe('handleCreateEvaluation', () => {
   it('devolve 400 para payload invalido', async () => {
     const store = createMemoryStore();
     const id = await createCandidate(store);
-    const res = await handleCreateEvaluation(store, id, {
-      comunicacao: 0,
-      tecnico: null,
-      softskill: 3,
-      obs: '',
-    });
+    const res = await handleCreateEvaluation(store, id, makeEvaluationInput({ comunicacao: 0 }));
     expect(res.status).toBe(400);
     expect(res.body).toHaveProperty('error');
   });
@@ -93,14 +83,21 @@ describe('handleCreateEvaluation', () => {
     expect(res.body).toEqual({ error: `Limite de ${MAX_EVALUATIONS} avaliações atingido` });
   });
 
-  it('devolve 201 com a avaliacao e preserva tecnico null', async () => {
+  it('devolve 201 com a avaliacao e preserva os 9 campos + veredicto (web null, veredicto nao_ajuda)', async () => {
     const store = createMemoryStore();
     const id = await createCandidate(store);
-    const res = await handleCreateEvaluation(store, id, validEvaluation);
+    const input = makeEvaluationInput({ web: null, veredicto: 'nao_ajuda' });
+    const res = await handleCreateEvaluation(store, id, input);
     expect(res.status).toBe(201);
-    const body = res.body as { id: string; tecnico: number | null; date: number };
-    expect(body.tecnico).toBeNull();
+    const body = res.body as { id: string; web: number | null; veredicto: string; date: number };
+    expect(body).toMatchObject(input);
+    expect(body.web).toBeNull();
+    expect(body.veredicto).toBe('nao_ajuda');
     expect(typeof body.id).toBe('string');
     expect(typeof body.date).toBe('number');
+
+    const list = await handleListCandidates(store);
+    const candidate = (list.body as { evaluations: unknown[] }[])[0];
+    expect(candidate.evaluations[0]).toMatchObject(input);
   });
 });

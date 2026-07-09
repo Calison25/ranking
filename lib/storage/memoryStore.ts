@@ -55,14 +55,7 @@ export function createMemoryStore(): CandidateStore {
         return { ok: false, reason: 'limit' };
       }
 
-      const evaluation: Evaluation = {
-        id: genEvaluationId(),
-        comunicacao: input.comunicacao,
-        tecnico: input.tecnico,
-        softskill: input.softskill,
-        obs: input.obs,
-        date: Date.now(),
-      };
+      const evaluation: Evaluation = { id: genEvaluationId(), ...input, date: Date.now() };
       list.push(evaluation);
       return { ok: true, evaluation };
     },

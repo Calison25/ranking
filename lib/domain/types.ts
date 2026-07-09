@@ -5,11 +5,20 @@ export interface Candidate {
   createdAt: number;
 }
 
+export type Veredicto = 'ajuda' | 'nao_ajuda';
+
 export interface Evaluation {
   id: string;
   comunicacao: number;
-  tecnico: number | null;
-  softskill: number;
+  organizacao: number;
+  proatividade: number;
+  cultura: number;
+  elaboracaoPlano: number | null;
+  promptEngineering: number | null;
+  conhecimentoModelos: number | null;
+  web: number | null;
+  conhecimentoAplicacao: number | null;
+  veredicto: Veredicto;
   obs: string;
   date: number;
 }
@@ -25,11 +34,24 @@ export interface CandidateInput {
 
 export interface EvaluationInput {
   comunicacao: number;
-  tecnico: number | null;
-  softskill: number;
+  organizacao: number;
+  proatividade: number;
+  cultura: number;
+  elaboracaoPlano: number | null;
+  promptEngineering: number | null;
+  conhecimentoModelos: number | null;
+  web: number | null;
+  conhecimentoAplicacao: number | null;
+  veredicto: Veredicto;
   obs: string;
 }
 
 export type ValidationResult<T> = { ok: true; value: T } | { ok: false; error: string };
 
-export type CandidateWithStats = CandidateWithEvaluations & { total: number; count: number; avg: number };
+export type CandidateWithStats = CandidateWithEvaluations & {
+  total: number;
+  count: number;
+  avg: number;
+  ajudaVotes: number;
+  ajudaPct: number;
+};

@@ -48,7 +48,7 @@ export default function RankingList({ candidates }: RankingListProps) {
   return (
     <div>
       <div style={headerRowStyle}>
-        <span style={headerLabelStyle}>Ordenado por soma total de pontos</span>
+        <span style={headerLabelStyle}>Ordenado por % de "vai ajudar", depois soma de pontos</span>
       </div>
 
       {ranking.length === 0 && (

@@ -1,14 +1,9 @@
 import { describe, expect, it } from 'vitest';
+import { makeEvaluationInput } from '../../domain/__fixtures__/evaluation.js';
 import { MAX_EVALUATIONS } from '../../domain/index.js';
-import type { EvaluationInput } from '../../domain/index.js';
 import { createMemoryStore } from '../memoryStore.js';
 
-const validEvaluation: EvaluationInput = {
-  comunicacao: 3,
-  tecnico: 4,
-  softskill: 5,
-  obs: 'ok',
-};
+const validEvaluation = makeEvaluationInput();
 
 describe('createMemoryStore', () => {
   it('createCandidate seguido de listCandidates devolve o candidato com evaluations vazio', async () => {
@@ -69,6 +64,23 @@ describe('createMemoryStore', () => {
       ok: false,
       reason: 'not_found',
     });
+  });
+
+  it('addEvaluation preserva os 9 critérios + veredicto no round-trip create -> list', async () => {
+    const store = createMemoryStore();
+    const c = await store.createCandidate({ nome: 'Ana', linkedin: '' });
+    const input = makeEvaluationInput({ web: null, veredicto: 'nao_ajuda' });
+
+    const result = await store.addEvaluation(c.id, input);
+    expect(result.ok).toBe(true);
+
+    const list = await store.listCandidates();
+    const evaluation = list[0].evaluations[0];
+    expect(evaluation).toMatchObject(input);
+    expect(evaluation.web).toBeNull();
+    expect(evaluation.veredicto).toBe('nao_ajuda');
+    expect(typeof evaluation.id).toBe('string');
+    expect(typeof evaluation.date).toBe('number');
   });
 
   it('10 addEvaluation simultaneos resultam em exatamente MAX ok e o restante limit', async () => {

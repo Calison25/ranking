@@ -1,5 +1,13 @@
-import { LINKEDIN_MAX_LENGTH, NOME_MAX_LENGTH, NOTE_MAX, NOTE_MIN, OBS_MAX_LENGTH } from './constants.js';
-import type { CandidateInput, EvaluationInput, ValidationResult } from './types.js';
+import {
+  CRITERIA,
+  LINKEDIN_MAX_LENGTH,
+  NOME_MAX_LENGTH,
+  NOTE_MAX,
+  NOTE_MIN,
+  OBS_MAX_LENGTH,
+} from './constants.js';
+import type { EvaluationCriterionKey } from './constants.js';
+import type { CandidateInput, EvaluationInput, ValidationResult, Veredicto } from './types.js';
 
 function isPlainObject(raw: unknown): raw is Record<string, unknown> {
   return typeof raw === 'object' && raw !== null && !Array.isArray(raw);
@@ -7,6 +15,10 @@ function isPlainObject(raw: unknown): raw is Record<string, unknown> {
 
 function isValidNote(value: unknown): value is number {
   return typeof value === 'number' && Number.isInteger(value) && value >= NOTE_MIN && value <= NOTE_MAX;
+}
+
+function isVeredicto(value: unknown): value is Veredicto {
+  return value === 'ajuda' || value === 'nao_ajuda';
 }
 
 function toTrimmedString(value: unknown): string {
@@ -39,28 +51,38 @@ export function validateEvaluationInput(raw: unknown): ValidationResult<Evaluati
     return { ok: false, error: 'Dados da avaliação inválidos' };
   }
 
-  const { comunicacao, tecnico, softskill, obs } = raw;
+  const notes = {} as Record<EvaluationCriterionKey, number | null>;
 
-  if (!isValidNote(comunicacao)) {
-    return { ok: false, error: 'Nota de Comunicação deve ser um inteiro entre 1 e 5' };
-  }
-  if (tecnico !== null && !isValidNote(tecnico)) {
-    return {
-      ok: false,
-      error: 'Nota de Conhecimento técnico deve ser "Não sei opinar" ou um inteiro entre 1 e 5',
-    };
-  }
-  if (!isValidNote(softskill)) {
-    return { ok: false, error: 'Nota de Soft skill deve ser um inteiro entre 1 e 5' };
+  for (const criterion of CRITERIA) {
+    const value = raw[criterion.key];
+    if (criterion.section === 'soft') {
+      if (!isValidNote(value)) {
+        return { ok: false, error: `Nota de ${criterion.label} deve ser um inteiro entre 1 e 5` };
+      }
+      notes[criterion.key] = value;
+    } else {
+      if (value !== null && !isValidNote(value)) {
+        return {
+          ok: false,
+          error: `Nota de ${criterion.label} deve ser "Não sei opinar" ou um inteiro entre 1 e 5`,
+        };
+      }
+      notes[criterion.key] = value === null ? null : value;
+    }
   }
 
-  const trimmedObs = toTrimmedString(obs);
+  const { veredicto } = raw;
+  if (!isVeredicto(veredicto)) {
+    return { ok: false, error: 'Veredicto é obrigatório' };
+  }
+
+  const trimmedObs = toTrimmedString(raw.obs);
   if (trimmedObs.length > OBS_MAX_LENGTH) {
     return { ok: false, error: 'Observações muito longas (máximo 2000 caracteres)' };
   }
 
   return {
     ok: true,
-    value: { comunicacao, tecnico, softskill, obs: trimmedObs },
+    value: { ...notes, veredicto, obs: trimmedObs } as EvaluationInput,
   };
 }
