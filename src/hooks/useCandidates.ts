@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import type { CandidateWithEvaluations, EvaluationInput } from '../../lib/domain';
-import { createCandidate, createEvaluation, deleteCandidate, fetchCandidates } from '../api/client';
+import type { CandidateWithEvaluations, EvaluationInput } from '../../lib/domain/index.js';
+import { createCandidate, createEvaluation, deleteCandidate, fetchCandidates } from '../api/client.js';
 
 export interface UseCandidatesResult {
   candidates: CandidateWithEvaluations[];

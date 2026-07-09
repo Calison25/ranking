@@ -2,7 +2,7 @@
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { CandidateWithEvaluations, EvaluationInput } from '../../../lib/domain';
+import type { CandidateWithEvaluations, EvaluationInput } from '../../../lib/domain/index.js';
 
 declare global {
   // eslint-disable-next-line no-var
@@ -13,8 +13,8 @@ declare global {
 // (evita o warning "current testing environment is not configured to support act").
 globalThis.IS_REACT_ACT_ENVIRONMENT = true;
 
-vi.mock('../../api/client', async () => {
-  const actual = await vi.importActual<typeof import('../../api/client')>('../../api/client');
+vi.mock('../../api/client.js', async () => {
+  const actual = await vi.importActual<typeof import('../../api/client.js')>('../../api/client.js');
   return {
     ...actual,
     fetchCandidates: vi.fn(),
@@ -24,8 +24,8 @@ vi.mock('../../api/client', async () => {
   };
 });
 
-import { ApiError, createCandidate, createEvaluation, deleteCandidate, fetchCandidates } from '../../api/client';
-import { useCandidates } from '../useCandidates';
+import { ApiError, createCandidate, createEvaluation, deleteCandidate, fetchCandidates } from '../../api/client.js';
+import { useCandidates } from '../useCandidates.js';
 
 function flushPromises(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 0));

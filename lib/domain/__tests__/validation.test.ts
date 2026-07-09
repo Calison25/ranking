@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { LINKEDIN_MAX_LENGTH, NOME_MAX_LENGTH, OBS_MAX_LENGTH } from '../constants';
-import { validateCandidateInput, validateEvaluationInput } from '../validation';
+import { LINKEDIN_MAX_LENGTH, NOME_MAX_LENGTH, OBS_MAX_LENGTH } from '../constants.js';
+import { validateCandidateInput, validateEvaluationInput } from '../validation.js';
 
 describe('validateCandidateInput', () => {
   it('rejeita raw null', () => {

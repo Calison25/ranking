@@ -1,9 +1,9 @@
 import type { IncomingMessage } from 'node:http';
 import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
-import { dispatch } from './lib/http/router';
-import { sendJson } from './lib/http/send';
-import { createMemoryStore } from './lib/storage/memoryStore';
+import { dispatch } from './lib/http/router.js';
+import { sendJson } from './lib/http/send.js';
+import { createMemoryStore } from './lib/storage/memoryStore.js';
 
 // Testes de UI (componentes React) devem declarar no topo do arquivo:
 // // @vitest-environment jsdom

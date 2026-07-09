@@ -1,5 +1,5 @@
-import { LINKEDIN_MAX_LENGTH, NOME_MAX_LENGTH, NOTE_MAX, NOTE_MIN, OBS_MAX_LENGTH } from './constants';
-import type { CandidateInput, EvaluationInput, ValidationResult } from './types';
+import { LINKEDIN_MAX_LENGTH, NOME_MAX_LENGTH, NOTE_MAX, NOTE_MIN, OBS_MAX_LENGTH } from './constants.js';
+import type { CandidateInput, EvaluationInput, ValidationResult } from './types.js';
 
 function isPlainObject(raw: unknown): raw is Record<string, unknown> {
   return typeof raw === 'object' && raw !== null && !Array.isArray(raw);

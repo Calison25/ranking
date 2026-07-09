@@ -3,7 +3,7 @@ import type {
   CandidateWithEvaluations,
   Evaluation,
   EvaluationInput,
-} from '../domain/index';
+} from '../domain/index.js';
 
 export type AddEvaluationResult =
   | { ok: true; evaluation: Evaluation }

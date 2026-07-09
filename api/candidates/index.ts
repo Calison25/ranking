@@ -5,9 +5,9 @@ import {
   handleListCandidates,
   methodNotAllowed,
   type ApiResult,
-} from '../../lib/http/handlers';
-import { sendJson } from '../../lib/http/send';
-import { getRedisStore } from '../../lib/storage/redisStore';
+} from '../../lib/http/handlers.js';
+import { sendJson } from '../../lib/http/send.js';
+import { getRedisStore } from '../../lib/storage/redisStore.js';
 
 // GET /api/candidates | POST /api/candidates
 export default async function handler(req: VercelRequest, res: VercelResponse): Promise<void> {

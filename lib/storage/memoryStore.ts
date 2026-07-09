@@ -1,12 +1,12 @@
-import { MAX_EVALUATIONS, genCandidateId, genEvaluationId } from '../domain/index';
+import { MAX_EVALUATIONS, genCandidateId, genEvaluationId } from '../domain/index.js';
 import type {
   Candidate,
   CandidateInput,
   CandidateWithEvaluations,
   Evaluation,
   EvaluationInput,
-} from '../domain/index';
-import type { AddEvaluationResult, CandidateStore } from './store';
+} from '../domain/index.js';
+import type { AddEvaluationResult, CandidateStore } from './store.js';
 
 /**
  * Store em memoria com a mesma semantica do adapter Redis. Usado pelo

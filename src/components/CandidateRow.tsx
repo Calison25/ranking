@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
-import { calcCandidateTotal, MAX_EVALUATIONS } from '../../lib/domain';
-import type { CandidateWithEvaluations } from '../../lib/domain';
-import { linkHref } from '../utils/format';
+import { calcCandidateTotal, MAX_EVALUATIONS } from '../../lib/domain/index.js';
+import type { CandidateWithEvaluations } from '../../lib/domain/index.js';
+import { linkHref } from '../utils/format.js';
 
 interface CandidateRowProps {
   candidate: CandidateWithEvaluations;

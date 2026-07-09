@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react';
-import type { CandidateWithEvaluations } from '../../lib/domain';
-import CandidateRow from './CandidateRow';
+import type { CandidateWithEvaluations } from '../../lib/domain/index.js';
+import CandidateRow from './CandidateRow.js';
 
 interface CandidateListProps {
   candidates: CandidateWithEvaluations[];

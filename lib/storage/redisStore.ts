@@ -1,13 +1,13 @@
-import { MAX_EVALUATIONS, genCandidateId, genEvaluationId } from '../domain/index';
+import { MAX_EVALUATIONS, genCandidateId, genEvaluationId } from '../domain/index.js';
 import type {
   Candidate,
   CandidateInput,
   CandidateWithEvaluations,
   Evaluation,
   EvaluationInput,
-} from '../domain/index';
-import { getRedis } from '../redis';
-import type { AddEvaluationResult, CandidateStore } from './store';
+} from '../domain/index.js';
+import { getRedis } from '../redis.js';
+import type { AddEvaluationResult, CandidateStore } from './store.js';
 
 const CANDIDATES_KEY = 'candidates';
 const evalsKey = (id: string): string => `evals:${id}`;

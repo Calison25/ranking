@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { ChangeEvent, CSSProperties, MouseEvent } from 'react';
-import { CRITERIA, MAX_EVALUATIONS, NOTE_LABELS, NOTE_LEGEND, OBS_MAX_LENGTH } from '../../lib/domain';
-import type { CandidateWithEvaluations, EvaluationInput } from '../../lib/domain';
+import { CRITERIA, MAX_EVALUATIONS, NOTE_LABELS, NOTE_LEGEND, OBS_MAX_LENGTH } from '../../lib/domain/index.js';
+import type { CandidateWithEvaluations, EvaluationInput } from '../../lib/domain/index.js';
 
 type CriterionKey = (typeof CRITERIA)[number]['key'];
 type ScoreValue = number | 'na' | null;

@@ -1,5 +1,5 @@
-import { MAX_EVALUATIONS, validateCandidateInput, validateEvaluationInput } from '../domain/index';
-import type { CandidateStore } from '../storage/store';
+import { MAX_EVALUATIONS, validateCandidateInput, validateEvaluationInput } from '../domain/index.js';
+import type { CandidateStore } from '../storage/store.js';
 
 export interface ApiResult {
   status: number;

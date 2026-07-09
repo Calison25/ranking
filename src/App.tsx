@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import type { CSSProperties } from 'react';
-import CandidateForm from './components/CandidateForm';
-import CandidateList from './components/CandidateList';
-import ConfirmDeleteModal from './components/ConfirmDeleteModal';
-import EvaluationModal from './components/EvaluationModal';
-import RankingList from './components/RankingList';
-import { useCandidates } from './hooks/useCandidates';
+import CandidateForm from './components/CandidateForm.js';
+import CandidateList from './components/CandidateList.js';
+import ConfirmDeleteModal from './components/ConfirmDeleteModal.js';
+import EvaluationModal from './components/EvaluationModal.js';
+import RankingList from './components/RankingList.js';
+import { useCandidates } from './hooks/useCandidates.js';
 
 type View = 'candidatos' | 'ranking';
 

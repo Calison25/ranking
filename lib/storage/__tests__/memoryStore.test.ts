@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { MAX_EVALUATIONS } from '../../domain/index';
-import type { EvaluationInput } from '../../domain/index';
-import { createMemoryStore } from '../memoryStore';
+import { MAX_EVALUATIONS } from '../../domain/index.js';
+import type { EvaluationInput } from '../../domain/index.js';
+import { createMemoryStore } from '../memoryStore.js';
 
 const validEvaluation: EvaluationInput = {
   comunicacao: 3,

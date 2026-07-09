@@ -2,8 +2,8 @@
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { CandidateWithEvaluations, EvaluationInput } from '../../../lib/domain';
-import EvaluationModal from '../EvaluationModal';
+import type { CandidateWithEvaluations, EvaluationInput } from '../../../lib/domain/index.js';
+import EvaluationModal from '../EvaluationModal.js';
 
 declare global {
   // eslint-disable-next-line no-var

@@ -1,4 +1,4 @@
-import type { CandidateWithEvaluations, Evaluation, EvaluationInput } from '../../lib/domain';
+import type { CandidateWithEvaluations, Evaluation, EvaluationInput } from '../../lib/domain/index.js';
 
 const DEFAULT_ERROR_MESSAGE = 'Erro ao comunicar com o servidor';
 const JSON_HEADERS = { 'Content-Type': 'application/json' };

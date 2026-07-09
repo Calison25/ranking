@@ -1,4 +1,4 @@
-import type { CandidateWithEvaluations, CandidateWithStats, Evaluation } from './types';
+import type { CandidateWithEvaluations, CandidateWithStats, Evaluation } from './types.js';
 
 export function calcCandidateTotal(evs: Evaluation[]): number {
   return evs.reduce((sum, e) => sum + (e.comunicacao ?? 0) + (e.tecnico ?? 0) + (e.softskill ?? 0), 0);

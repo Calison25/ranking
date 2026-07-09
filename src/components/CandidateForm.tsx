@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { ChangeEvent, CSSProperties, KeyboardEvent } from 'react';
-import { LINKEDIN_MAX_LENGTH, NOME_MAX_LENGTH } from '../../lib/domain';
+import { LINKEDIN_MAX_LENGTH, NOME_MAX_LENGTH } from '../../lib/domain/index.js';
 
 interface CandidateFormProps {
   onAdd: (input: { nome: string; linkedin: string }) => Promise<void>;

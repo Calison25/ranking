@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { buildRanking, calcCandidateAvg, calcCandidateTotal, decorateCandidate, round1 } from '../ranking';
-import type { CandidateWithEvaluations, Evaluation } from '../types';
+import { buildRanking, calcCandidateAvg, calcCandidateTotal, decorateCandidate, round1 } from '../ranking.js';
+import type { CandidateWithEvaluations, Evaluation } from '../types.js';
 
 function makeEvaluation(overrides: Partial<Evaluation> = {}): Evaluation {
   return {

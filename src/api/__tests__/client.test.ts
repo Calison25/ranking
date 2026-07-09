@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { CandidateWithEvaluations, Evaluation, EvaluationInput } from '../../../lib/domain';
-import { ApiError, createCandidate, createEvaluation, deleteCandidate, fetchCandidates } from '../client';
+import type { CandidateWithEvaluations, Evaluation, EvaluationInput } from '../../../lib/domain/index.js';
+import { ApiError, createCandidate, createEvaluation, deleteCandidate, fetchCandidates } from '../client.js';
 
 function mockResponse(status: number, body: unknown, jsonThrows = false): Response {
   return {

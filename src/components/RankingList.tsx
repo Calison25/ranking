@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import type { CSSProperties } from 'react';
-import { buildRanking } from '../../lib/domain';
-import type { CandidateWithEvaluations } from '../../lib/domain';
-import RankingRow from './RankingRow';
+import { buildRanking } from '../../lib/domain/index.js';
+import type { CandidateWithEvaluations } from '../../lib/domain/index.js';
+import RankingRow from './RankingRow.js';
 
 interface RankingListProps {
   candidates: CandidateWithEvaluations[];

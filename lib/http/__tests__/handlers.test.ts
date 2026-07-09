@@ -1,14 +1,14 @@
 import { describe, expect, it } from 'vitest';
-import { MAX_EVALUATIONS } from '../../domain/index';
-import type { EvaluationInput } from '../../domain/index';
-import { createMemoryStore } from '../../storage/memoryStore';
-import type { CandidateStore } from '../../storage/store';
+import { MAX_EVALUATIONS } from '../../domain/index.js';
+import type { EvaluationInput } from '../../domain/index.js';
+import { createMemoryStore } from '../../storage/memoryStore.js';
+import type { CandidateStore } from '../../storage/store.js';
 import {
   handleCreateCandidate,
   handleCreateEvaluation,
   handleDeleteCandidate,
   handleListCandidates,
-} from '../handlers';
+} from '../handlers.js';
 
 const validEvaluation: EvaluationInput = {
   comunicacao: 3,

@@ -1,4 +1,4 @@
-import type { CandidateStore } from '../storage/store';
+import type { CandidateStore } from '../storage/store.js';
 import {
   handleCreateCandidate,
   handleCreateEvaluation,
@@ -6,7 +6,7 @@ import {
   handleListCandidates,
   methodNotAllowed,
   type ApiResult,
-} from './handlers';
+} from './handlers.js';
 
 const API_PREFIX = '/api/';
 

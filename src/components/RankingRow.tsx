@@ -1,7 +1,7 @@
 import type { CSSProperties } from 'react';
-import { round1 } from '../../lib/domain';
-import type { CandidateWithStats } from '../../lib/domain';
-import { formatDate } from '../utils/format';
+import { round1 } from '../../lib/domain/index.js';
+import type { CandidateWithStats } from '../../lib/domain/index.js';
+import { formatDate } from '../utils/format.js';
 
 interface RankingRowProps {
   rank: number;
