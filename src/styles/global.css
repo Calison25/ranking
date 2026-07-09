@@ -1,0 +1,70 @@
+:root {
+  --bg: #f6f3fb;
+  --surface: #ffffff;
+  --ink: #2b2340;
+  --muted: #7b7290;
+  --faint: #b1a8c2;
+  --border: #e7e0f0;
+  --chip: #efeaf6;
+  --soft: #f8f5fc;
+  --ac: #5c2d91;
+  --acSoft: #efe6f6;
+  --dark: #5c2d91;
+  --warn: #96702f;
+  --warnSoft: #f2e8d6;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Public Sans', system-ui, sans-serif;
+}
+
+a {
+  color: var(--ac);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+input,
+textarea,
+button {
+  font-family: inherit;
+}
+
+textarea {
+  resize: vertical;
+}
+
+input:focus,
+textarea:focus {
+  border-color: var(--ac) !important;
+}
+
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

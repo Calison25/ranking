@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;0,6..72,600;1,6..72,400&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *{box-sizing:border-box}
+    body{margin:0}
+    a{color:var(--ac);text-decoration:none}
+    a:hover{text-decoration:underline}
+    input,textarea,button{font-family:inherit}
+    textarea{resize:vertical}
+    input:focus,textarea:focus{border-color:var(--ac) !important}
+    @keyframes popIn{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+    @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  </style>
+</helmet>
+<div style="{{ rootStyle }}">
+  <div style="max-width:1000px;margin:0 auto;padding:44px 24px 90px">
+
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:28px;flex-wrap:wrap">
+      <div>
+        <h1 style="font-family:'Newsreader',serif;font-weight:500;font-size:36px;line-height:1.05;margin:0;letter-spacing:-.01em;color:var(--ink)">Classificador de Entrevistas</h1>
+        <p style="margin:9px 0 0;color:var(--muted);font-size:15px;max-width:46ch">Cadastre candidatos, registre até 4 avaliações por pessoa e acompanhe o ranking geral.</p>
+      </div>
+      <div style="display:inline-flex;background:var(--chip);border:1px solid var(--border);border-radius:12px;padding:4px;gap:4px">
+        <button onClick="{{ onTabCand }}" style="{{ tabCandStyle }}">Candidatos</button>
+        <button onClick="{{ onTabRank }}" style="{{ tabRankStyle }}">Ranking</button>
+      </div>
+    </div>
+
+    <sc-if value="{{ isCandidatos }}" hint-placeholder-val="{{ true }}">
+      <div>
+        <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end;background:var(--surface);border:1px solid var(--border);border-radius:15px;padding:16px 18px;margin-bottom:24px">
+          <div style="flex:2;min-width:190px;display:flex;flex-direction:column;gap:6px">
+            <label style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.06em">NOME</label>
+            <input value="{{ nome }}" onChange="{{ onNome }}" placeholder="Nome do candidato" style="padding:11px 13px;border:1px solid var(--border);border-radius:10px;font-size:14px;outline:none;color:var(--ink);background:var(--surface)">
+          </div>
+          <div style="flex:2;min-width:190px;display:flex;flex-direction:column;gap:6px">
+            <label style="font-size:11px;font-weight:700;color:var(--muted);letter-spacing:.06em">LINKEDIN <span style="font-weight:500;text-transform:none;letter-spacing:0">(opcional)</span></label>
+            <input value="{{ linkedin }}" onChange="{{ onLinkedin }}" placeholder="linkedin.com/in/..." style="padding:11px 13px;border:1px solid var(--border);border-radius:10px;font-size:14px;outline:none;color:var(--ink);background:var(--surface)">
+          </div>
+          <button onClick="{{ onAdd }}" style="padding:11px 22px;background:var(--dark);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">Adicionar</button>
+        </div>
+
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin:0 4px 12px">
+          <span style="font-size:13px;color:var(--muted);font-weight:600;letter-spacing:.02em">{{ countLine }}</span>
+        </div>
+
+        <sc-if value="{{ noCandidates }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align:center;padding:52px 20px;background:var(--surface);border:1px dashed var(--border);border-radius:15px;color:var(--muted)">
+            <div style="font-family:'Newsreader',serif;font-size:20px;color:var(--ink);margin-bottom:6px">Nenhum candidato ainda</div>
+            <div style="font-size:14px">Adicione o primeiro candidato no formulário acima.</div>
+          </div>
+        </sc-if>
+
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ candidates }}" as="c" hint-placeholder-count="3">
+            <div style="display:flex;align-items:center;gap:16px;background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:15px 18px">
+              <div style="flex:1;min-width:0">
+                <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+                  <span style="font-weight:600;font-size:16px;color:var(--ink)">{{ c.nome }}</span>
+                  <span style="{{ c.badgeStyle }}">{{ c.evalLabel }}</span>
+                </div>
+                <div style="display:flex;gap:14px;margin-top:5px;font-size:13px;color:var(--muted)">
+                  <span>{{ c.countLabel }}</span>
+                  <sc-if value="{{ c.hasLinkedin }}" hint-placeholder-val="{{ false }}">
+                    <a href="{{ c.linkedinHref }}" target="_blank" rel="noopener">LinkedIn ↗</a>
+                  </sc-if>
+                </div>
+              </div>
+              <div style="text-align:right;padding-right:4px">
+                <div style="font-family:'Newsreader',serif;font-size:26px;line-height:1;color:var(--ink)">{{ c.total }}</div>
+                <div style="font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;margin-top:1px">pontos</div>
+              </div>
+              <button onClick="{{ c.onEval }}" disabled="{{ c.evalDisabled }}" style="{{ c.evalBtnStyle }}">{{ c.evalBtnLabel }}</button>
+              <button onClick="{{ c.onRemove }}" title="Remover candidato" style="width:34px;height:34px;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:var(--faint);cursor:pointer;font-size:12px;flex-shrink:0">✕</button>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isRanking }}" hint-placeholder-val="{{ false }}">
+      <div>
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin:0 4px 14px">
+          <span style="font-size:13px;color:var(--muted);font-weight:600">Ordenado por {{ basisLabel }}</span>
+        </div>
+
+        <sc-if value="{{ noRanking }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align:center;padding:52px 20px;background:var(--surface);border:1px dashed var(--border);border-radius:15px;color:var(--muted)">
+            <div style="font-family:'Newsreader',serif;font-size:20px;color:var(--ink);margin-bottom:6px">Sem avaliações ainda</div>
+            <div style="font-size:14px">Avalie candidatos para que o ranking apareça aqui.</div>
+          </div>
+        </sc-if>
+
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <sc-for list="{{ ranking }}" as="r" hint-placeholder-count="3">
+            <div style="{{ r.rowStyle }}">
+              <div style="display:flex;align-items:center;gap:18px;cursor:pointer" onClick="{{ r.onToggle }}">
+                <div style="{{ r.rankStyle }}">{{ r.rankLabel }}</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-weight:600;font-size:17px;color:var(--ink)">{{ r.nome }}</div>
+                  <div style="font-size:13px;color:var(--muted);margin-top:2px">{{ r.metaLabel }}</div>
+                </div>
+                <div style="text-align:right">
+                  <div style="font-family:'Newsreader',serif;font-size:31px;line-height:1;color:var(--ink)">{{ r.value }}</div>
+                  <div style="font-size:10px;color:var(--faint);text-transform:uppercase;letter-spacing:.08em;margin-top:1px">{{ r.valueUnit }}</div>
+                </div>
+                <div style="color:var(--ac);font-size:13px;font-weight:600;white-space:nowrap;min-width:130px;text-align:right">{{ r.toggleLabel }}</div>
+              </div>
+              <sc-if value="{{ r.expanded }}" hint-placeholder-val="{{ false }}">
+                <div style="margin-top:15px;padding-top:15px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:11px;animation:fadeIn .2s ease">
+                  <sc-for list="{{ r.observations }}" as="o" hint-placeholder-count="2">
+                    <div style="background:var(--soft);border:1px solid var(--border);border-radius:11px;padding:12px 15px">
+                      <div style="display:flex;justify-content:space-between;gap:10px;font-size:12px;color:var(--muted);margin-bottom:7px;flex-wrap:wrap">
+                        <span style="font-weight:600">{{ o.scoreLine }}</span>
+                        <span>{{ o.date }}</span>
+                      </div>
+                      <div style="{{ o.textStyle }}">{{ o.text }}</div>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+      </div>
+    </sc-if>
+
+  </div>
+
+  <sc-if value="{{ modalOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(28,26,22,.42);display:flex;align-items:flex-start;justify-content:center;padding:40px 20px;z-index:50;overflow:auto;animation:fadeIn .15s ease" onClick="{{ onCloseEval }}">
+      <div style="background:var(--surface);border-radius:18px;width:100%;max-width:520px;padding:26px 28px;animation:popIn .2s ease;box-shadow:0 24px 60px rgba(30,26,20,.28)" onClick="{{ stopProp }}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px">
+          <div>
+            <div style="font-family:'Newsreader',serif;font-size:23px;line-height:1.1;color:var(--ink)">{{ evalName }}</div>
+            <div style="font-size:13px;color:var(--muted);margin-top:3px">{{ evalAttempt }}</div>
+          </div>
+          <button onClick="{{ onCloseEval }}" style="width:34px;height:34px;border-radius:9px;border:1px solid var(--border);background:var(--surface);color:var(--faint);cursor:pointer;font-size:13px;flex-shrink:0">✕</button>
+        </div>
+
+        <sc-if value="{{ showLabels }}" hint-placeholder-val="{{ true }}">
+          <div style="font-size:12px;color:var(--muted);margin-top:16px;background:var(--soft);border:1px solid var(--border);border-radius:9px;padding:9px 13px;text-align:center">1&nbsp;Ruim&nbsp;·&nbsp;2&nbsp;Regular&nbsp;·&nbsp;3&nbsp;Bom&nbsp;·&nbsp;4&nbsp;Muito bom&nbsp;·&nbsp;5&nbsp;Excelente</div>
+        </sc-if>
+
+        <div style="display:flex;flex-direction:column;gap:18px;margin-top:18px">
+          <sc-for list="{{ criteria }}" as="crit" hint-placeholder-count="3">
+            <div>
+              <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px;gap:10px">
+                <span style="font-weight:600;font-size:15px;color:var(--ink)">{{ crit.label }}</span>
+                <span style="font-size:13px;color:var(--ac);font-weight:600">{{ crit.valLabel }}</span>
+              </div>
+              <div style="display:flex;gap:8px">
+                <sc-for list="{{ crit.buttons }}" as="b" hint-placeholder-count="5">
+                  <button onClick="{{ b.onClick }}" style="{{ b.style }}">{{ b.n }}</button>
+                </sc-for>
+              </div>
+              <sc-if value="{{ crit.hasNA }}" hint-placeholder-val="{{ false }}">
+                <button onClick="{{ crit.naOnClick }}" style="{{ crit.naStyle }}">Não sei opinar</button>
+              </sc-if>
+            </div>
+          </sc-for>
+        </div>
+
+        <div style="margin-top:20px">
+          <label style="font-weight:600;font-size:13px;color:var(--muted)">Observações</label>
+          <textarea value="{{ obs }}" onChange="{{ onObs }}" placeholder="Anotações sobre o candidato (opcional)" style="width:100%;margin-top:7px;min-height:82px;padding:11px 13px;border:1px solid var(--border);border-radius:10px;font-size:14px;color:var(--ink);outline:none;line-height:1.5;background:var(--surface)"></textarea>
+        </div>
+
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:22px">
+          <button onClick="{{ onCloseEval }}" style="padding:10px 18px;background:var(--surface);color:var(--muted);border:1px solid var(--border);border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">Cancelar</button>
+          <button onClick="{{ onSaveEval }}" disabled="{{ saveDisabled }}" style="{{ saveStyle }}">Salvar avaliação</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ confirmOpen }}" hint-placeholder-val="{{ false }}">
+    <div style="position:fixed;inset:0;background:rgba(28,26,22,.42);display:flex;align-items:center;justify-content:center;padding:20px;z-index:60;animation:fadeIn .15s ease" onClick="{{ onCancelDel }}">
+      <div style="background:var(--surface);border-radius:16px;width:100%;max-width:400px;padding:24px 26px;animation:popIn .2s ease;box-shadow:0 24px 60px rgba(30,26,20,.28)" onClick="{{ stopProp }}">
+        <div style="font-family:'Newsreader',serif;font-size:21px;color:var(--ink)">Remover candidato</div>
+        <p style="margin:10px 0 0;font-size:14px;color:var(--muted);line-height:1.55">Tem certeza que deseja remover <strong style="color:var(--ink)">{{ confirmName }}</strong> e todas as suas avaliações? Esta ação não pode ser desfeita.</p>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:22px">
+          <button onClick="{{ onCancelDel }}" style="padding:10px 18px;background:var(--surface);color:var(--muted);border:1px solid var(--border);border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">Cancelar</button>
+          <button onClick="{{ onConfirmDel }}" style="padding:10px 18px;background:#c0392b;color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer">Remover</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;palette&quot;: {&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;Agilize&quot;,&quot;options&quot;:[&quot;Agilize&quot;,&quot;Agilize escuro&quot;,&quot;Lavanda&quot;,&quot;Terroso quente&quot;,&quot;Verde sálvia&quot;,&quot;Ameixa &amp; vinho&quot;,&quot;Petróleo&quot;,&quot;Grafite &amp; âmbar&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Aparência&quot;},
+  &quot;maxEvaluations&quot;: {&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:4,&quot;min&quot;:1,&quot;max&quot;:8,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;Configurações&quot;},
+  &quot;rankingBasis&quot;: {&quot;editor&quot;:&quot;enum&quot;,&quot;default&quot;:&quot;Soma total de pontos&quot;,&quot;options&quot;:[&quot;Soma total de pontos&quot;,&quot;Média por avaliação&quot;],&quot;tsType&quot;:&quot;string&quot;,&quot;section&quot;:&quot;Configurações&quot;},
+  &quot;showNoteLabels&quot;: {&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;Configurações&quot;}
+}">
+class Component extends DCLogic {
+  constructor(props){
+    super(props);
+    let saved=[];
+    try{ saved=JSON.parse(localStorage.getItem('ce_candidates_v1')||'[]'); if(!Array.isArray(saved)) saved=[]; }catch(e){ saved=[]; }
+    this.state={ candidates:saved, view:'candidatos', nome:'', linkedin:'', evalFor:null, sc:{comunicacao:0,tecnico:0,softskill:0}, obs:'', expanded:{}, confirmDel:null };
+  }
+  persist(cands){ try{ localStorage.setItem('ce_candidates_v1', JSON.stringify(cands)); }catch(e){} }
+  setCands(cands){ this.persist(cands); this.setState({candidates:cands}); }
+  addCandidate(){
+    const nome=(this.state.nome||'').trim(); if(!nome) return;
+    const c={ id:'c'+Date.now().toString(36)+Math.random().toString(36).slice(2,5), nome, linkedin:(this.state.linkedin||'').trim(), evaluations:[] };
+    this.setCands([...this.state.candidates, c]);
+    this.setState({nome:'', linkedin:''});
+  }
+  askRemove(id){ this.setState({confirmDel:id}); }
+  cancelRemove(){ this.setState({confirmDel:null}); }
+  confirmRemove(){ const id=this.state.confirmDel; if(!id) return; this.setCands(this.state.candidates.filter(c=>c.id!==id)); this.setState({confirmDel:null}); }
+  openEval(id){ this.setState({ evalFor:id, sc:{comunicacao:0,tecnico:0,softskill:0}, obs:'' }); }
+  closeEval(){ this.setState({ evalFor:null }); }
+  setScore(key,n){ this.setState(s=>({ sc:{...s.sc,[key]:n} })); }
+  saveEval(){
+    const max=this.props.maxEvaluations ?? 4;
+    const {comunicacao,tecnico,softskill}=this.state.sc;
+    const isSet=v=> v==='na' || v>0;
+    if(!isSet(comunicacao)||!isSet(tecnico)||!isSet(softskill)) return;
+    const cands=this.state.candidates.map(c=>{
+      if(c.id!==this.state.evalFor) return c;
+      if((c.evaluations||[]).length>=max) return c;
+      const ev={ id:'e'+Date.now().toString(36), date:Date.now(), comunicacao, tecnico: tecnico==='na'? null : tecnico, softskill, obs:(this.state.obs||'').trim() };
+      return {...c, evaluations:[...(c.evaluations||[]), ev]};
+    });
+    this.setCands(cands);
+    this.setState({ evalFor:null });
+  }
+  toggleExpand(id){ this.setState(s=>({ expanded:{...s.expanded, [id]:!s.expanded[id]} })); }
+  fmtDate(ts){ const d=new Date(ts); const p=n=>(n<10?'0':'')+n; return p(d.getDate())+'/'+p(d.getMonth()+1)+'/'+d.getFullYear(); }
+  linkHref(u){ if(!u) return ''; return /^https?:\/\//i.test(u)? u : 'https://'+u; }
+
+  palettes(){
+    return {
+      'Agilize':          {bg:'#f6f3fb',surface:'#ffffff',ink:'#2b2340',muted:'#7b7290',faint:'#b1a8c2',border:'#e7e0f0',chip:'#efeaf6',soft:'#f8f5fc',ac:'#5c2d91',acSoft:'#efe6f6',dark:'#5c2d91',warn:'#96702f',warnSoft:'#f2e8d6'},
+      'Agilize escuro':   {bg:'#241635',surface:'#2f2044',ink:'#f3eefa',muted:'#b5a8cc',faint:'#8b7dab',border:'#40305a',chip:'#382649',soft:'#2b1d40',ac:'#b295e6',acSoft:'#3a2a58',dark:'#5c2d91',warn:'#d1a44e',warnSoft:'#3d3320'},
+      'Lavanda':          {bg:'#f4f0f9',surface:'#ffffff',ink:'#2a2334',muted:'#867d95',faint:'#b3a9c2',border:'#e6def0',chip:'#efe8f6',soft:'#f7f3fb',ac:'#7a45c9',acSoft:'#efe4fb',dark:'#3a2b52',warn:'#8a6a2e',warnSoft:'#efe6d5'},
+      'Terroso quente':   {bg:'#f4efe8',surface:'#fffdfa',ink:'#2c2620',muted:'#8a8175',faint:'#b3a898',border:'#e7ddce',chip:'#efe7db',soft:'#faf5ee',ac:'#b45f3a',acSoft:'#f4e4d8',dark:'#2c2620',warn:'#96702f',warnSoft:'#f2e8d6'},
+      'Verde sálvia':     {bg:'#eef1ec',surface:'#ffffff',ink:'#222821',muted:'#7e857a',faint:'#adb3a8',border:'#dce3d8',chip:'#e7ebe3',soft:'#f4f6f2',ac:'#3f6d52',acSoft:'#e2ede4',dark:'#232821',warn:'#8a6a2e',warnSoft:'#eee6d5'},
+      'Ameixa & vinho':   {bg:'#f4eff1',surface:'#ffffff',ink:'#2a2126',muted:'#8b7f84',faint:'#b8adb2',border:'#e6dae0',chip:'#eee7ea',soft:'#f7f2f5',ac:'#7c3d5e',acSoft:'#f0e1e9',dark:'#2a2126',warn:'#8a6a2e',warnSoft:'#efe6d5'},
+      'Petróleo':         {bg:'#edf2f1',surface:'#ffffff',ink:'#1e2726',muted:'#78827f',faint:'#a6b0ad',border:'#d7e2df',chip:'#e4ebe9',soft:'#f2f6f5',ac:'#1f6b6b',acSoft:'#daebe9',dark:'#1e2726',warn:'#8a6a2e',warnSoft:'#ede6d4'},
+      'Grafite & âmbar':  {bg:'#f2f1ec',surface:'#ffffff',ink:'#26241f',muted:'#87857c',faint:'#b4b2a8',border:'#e2e0d7',chip:'#eceae1',soft:'#f7f6f1',ac:'#b07d2b',acSoft:'#f2e9d4',dark:'#26241f',warn:'#a35a3a',warnSoft:'#f1e4de'}
+    };
+  }
+
+  renderVals(){
+    const NOTE_LABELS=['','Ruim','Regular','Bom','Muito bom','Excelente'];
+    const showLabels=this.props.showNoteLabels ?? true;
+    const max=this.props.maxEvaluations ?? 4;
+    const basis=this.props.rankingBasis ?? 'Soma total de pontos';
+    const useSum = basis!=='Média por avaliação';
+    const round1=x=>Math.round(x*10)/10;
+    const AC='var(--ac)';
+
+    const pals=this.palettes();
+    const P = pals[this.props.palette] || pals['Agilize'];
+    const rootStyle = {
+      '--bg':P.bg,'--surface':P.surface,'--ink':P.ink,'--muted':P.muted,'--faint':P.faint,
+      '--border':P.border,'--chip':P.chip,'--soft':P.soft,'--ac':P.ac,'--acSoft':P.acSoft,
+      '--dark':P.dark,'--warn':P.warn,'--warnSoft':P.warnSoft,
+      minHeight:'100vh', background:'var(--bg)', color:'var(--ink)', fontFamily:"'Public Sans',system-ui,sans-serif"
+    };
+
+    const badgeBase={fontSize:'12px',fontWeight:600,padding:'2px 10px',borderRadius:'20px',whiteSpace:'nowrap'};
+    const evalBtnBase={padding:'10px 18px',borderRadius:'10px',fontSize:'14px',fontWeight:600,whiteSpace:'nowrap',flexShrink:0};
+    const noteBase={width:'46px',height:'44px',borderRadius:'10px',fontWeight:600,fontSize:'15px',cursor:'pointer',border:'1px solid'};
+    const tabBase={padding:'8px 18px',borderRadius:'9px',border:'none',fontSize:'14px',fontWeight:600,cursor:'pointer'};
+    const rankBase={fontFamily:"'Newsreader',serif",fontSize:'30px',fontWeight:500,width:'44px',textAlign:'center',flexShrink:0};
+    const rowBase={borderRadius:'14px',padding:'16px 20px'};
+
+    const decorated=this.state.candidates.map(c=>{
+      const evs=c.evaluations||[];
+      const total=evs.reduce((s,e)=>s+(e.comunicacao||0)+(e.tecnico||0)+(e.softskill||0),0);
+      const count=evs.length;
+      return {...c, evs, total, count, avg: count? total/count : 0};
+    });
+
+    const candidates=decorated.map(c=>{
+      const disabled=c.count>=max;
+      const badgeStyle = c.count===0 ? {...badgeBase, background:'var(--chip)', color:'var(--muted)'}
+        : disabled ? {...badgeBase, background:'var(--warnSoft)', color:'var(--warn)'}
+        : {...badgeBase, background:'var(--acSoft)', color:'var(--ac)'};
+      return {
+        id:c.id, nome:c.nome, hasLinkedin:!!c.linkedin, linkedinHref:this.linkHref(c.linkedin),
+        evalLabel: c.count+' / '+max, total:c.total,
+        countLabel: c.count===0?'Sem avaliações':(c.count===1?'1 avaliação':c.count+' avaliações'),
+        evalDisabled: disabled,
+        evalBtnLabel: disabled?'Limite atingido':'Avaliar',
+        evalBtnStyle: disabled ? {...evalBtnBase, background:'var(--chip)', color:'var(--faint)', cursor:'not-allowed', border:'1px solid var(--border)'}
+          : {...evalBtnBase, background:AC, color:'#fff', cursor:'pointer', border:'1px solid var(--ac)'},
+        badgeStyle,
+        onEval: ()=>this.openEval(c.id),
+        onRemove: ()=>this.askRemove(c.id)
+      };
+    });
+
+    const ranked=decorated.filter(c=>c.count>0).sort((a,b)=>{
+      const av=useSum?a.total:a.avg, bv=useSum?b.total:b.avg;
+      if(bv!==av) return bv-av;
+      if(b.avg!==a.avg) return b.avg-a.avg;
+      return a.nome.localeCompare(b.nome);
+    });
+    const medal=['#c08a2c','#9a9ca6','#b06a38'];
+    const ranking=ranked.map((c,i)=>{
+      const isTop=i<3;
+      return {
+        id:c.id, nome:c.nome,
+        rankLabel:(i+1<10?'0':'')+(i+1),
+        rankStyle: isTop? {...rankBase, color:medal[i]} : {...rankBase, color:'var(--faint)'},
+        rowStyle: isTop? {...rowBase, background:'var(--surface)', border:'1px solid var(--acSoft)'} : {...rowBase, background:'var(--surface)', border:'1px solid var(--border)'},
+        value: useSum? c.total : round1(c.avg),
+        valueUnit: useSum? 'pontos' : 'média',
+        metaLabel: c.count+(c.count===1?' avaliação':' avaliações')+'  ·  média '+round1(c.avg),
+        expanded: !!this.state.expanded[c.id],
+        toggleLabel: this.state.expanded[c.id]? 'Ocultar observações ▲' : 'Ver observações ▾',
+        onToggle: ()=>this.toggleExpand(c.id),
+        observations:(c.evs).map((e)=>({
+          date:this.fmtDate(e.date),
+          scoreLine:'Comunicação '+e.comunicacao+'  ·  Técnico '+(e.tecnico? e.tecnico : 'n/a')+'  ·  Soft skill '+e.softskill,
+          text: e.obs? e.obs : 'Sem observação registrada.',
+          textStyle: e.obs? {fontSize:'14px',color:'var(--ink)',lineHeight:1.5} : {fontSize:'14px',color:'var(--faint)',fontStyle:'italic',lineHeight:1.5}
+        }))
+      };
+    });
+
+    const delCand=this.state.candidates.find(c=>c.id===this.state.confirmDel);
+    const evalCand=this.state.candidates.find(c=>c.id===this.state.evalFor);
+    const evalCount= evalCand? (evalCand.evaluations||[]).length : 0;
+    const naBase={marginTop:'8px',padding:'8px 14px',borderRadius:'10px',fontWeight:600,fontSize:'13px',cursor:'pointer',border:'1px solid'};
+    const critDefs=[['comunicacao','Comunicação',false],['tecnico','Conhecimento técnico',true],['softskill','Soft skill',false]];
+    const criteria=critDefs.map(([key,label,hasNA])=>{
+      const val=this.state.sc[key];
+      const naSel = val==='na';
+      return {
+        key, label, hasNA,
+        valLabel: naSel? 'Não sei opinar' : (val? (showLabels? val+' — '+NOTE_LABELS[val] : ''+val) : ''),
+        buttons:[1,2,3,4,5].map(n=>({
+          n, onClick:()=>this.setScore(key,n),
+          style: n===val ? {...noteBase, background:AC, color:'#fff', borderColor:'var(--ac)'}
+            : {...noteBase, background:'var(--surface)', color:'var(--ink)', borderColor:'var(--border)'}
+        })),
+        naOnClick: ()=>this.setScore(key,'na'),
+        naStyle: naSel ? {...naBase, background:AC, color:'#fff', borderColor:'var(--ac)'}
+          : {...naBase, background:'var(--surface)', color:'var(--muted)', borderColor:'var(--border)'}
+      };
+    });
+    const isSet=v=> v==='na' || v>0;
+    const canSave= isSet(this.state.sc.comunicacao) && isSet(this.state.sc.tecnico) && isSet(this.state.sc.softskill);
+    const saveBase={padding:'10px 20px',borderRadius:'10px',fontSize:'14px',fontWeight:600,border:'none'};
+
+    return {
+      rootStyle,
+      isCandidatos: this.state.view==='candidatos',
+      isRanking: this.state.view==='ranking',
+      onTabCand:()=>this.setState({view:'candidatos'}),
+      onTabRank:()=>this.setState({view:'ranking'}),
+      tabCandStyle: this.state.view==='candidatos'? {...tabBase, background:'var(--dark)', color:'#fff'} : {...tabBase, background:'transparent', color:'var(--muted)'},
+      tabRankStyle: this.state.view==='ranking'? {...tabBase, background:'var(--dark)', color:'#fff'} : {...tabBase, background:'transparent', color:'var(--muted)'},
+      nome:this.state.nome, linkedin:this.state.linkedin,
+      onNome:(e)=>this.setState({nome:e.target.value}),
+      onLinkedin:(e)=>this.setState({linkedin:e.target.value}),
+      onAdd:()=>this.addCandidate(),
+      candidates,
+      noCandidates: candidates.length===0,
+      countLine: candidates.length===1?'1 candidato':candidates.length+' candidatos',
+      ranking,
+      noRanking: ranking.length===0,
+      basisLabel: useSum? 'soma total de pontos' : 'média por avaliação',
+      modalOpen: !!evalCand,
+      evalName: evalCand? evalCand.nome : '',
+      evalAttempt: 'Avaliação '+(evalCount+1)+' de '+max,
+      criteria,
+      obs:this.state.obs,
+      onObs:(e)=>this.setState({obs:e.target.value}),
+      saveDisabled: !canSave,
+      saveStyle: canSave? {...saveBase, background:AC, color:'#fff', cursor:'pointer'} : {...saveBase, background:'var(--chip)', color:'var(--faint)', cursor:'not-allowed'},
+      onSaveEval:()=>this.saveEval(),
+      onCloseEval:()=>this.closeEval(),
+      stopProp:(e)=>e.stopPropagation(),
+      confirmOpen: !!delCand,
+      confirmName: delCand? delCand.nome : '',
+      onConfirmDel: ()=>this.confirmRemove(),
+      onCancelDel: ()=>this.cancelRemove(),
+      showLabels
+    };
+  }
+}
+</script>
+</body>
+</html>
