@@ -1,4 +1,5 @@
 import type { CandidateWithEvaluations, Evaluation, EvaluationInput } from '../../lib/domain/index.js';
+import { clearStoredToken, getStoredToken } from '../auth/session.js';
 
 const DEFAULT_ERROR_MESSAGE = 'Erro ao comunicar com o servidor';
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
@@ -22,8 +23,26 @@ async function readErrorMessage(response: Response): Promise<string> {
   }
 }
 
+function withAuth(init?: RequestInit): RequestInit | undefined {
+  const token = getStoredToken();
+  if (!token) {
+    return init;
+  }
+  return {
+    ...init,
+    headers: { ...(init?.headers as Record<string, string> | undefined), Authorization: `Bearer ${token}` },
+  };
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(path, init);
+  const response = await fetch(path, withAuth(init));
+
+  if (response.status === 401) {
+    clearStoredToken();
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('auth:expired'));
+    }
+  }
 
   if (!response.ok) {
     throw new ApiError(response.status, await readErrorMessage(response));
@@ -57,5 +76,13 @@ export function createEvaluation(id: string, input: EvaluationInput): Promise<Ev
     method: 'POST',
     headers: JSON_HEADERS,
     body: JSON.stringify(input),
+  });
+}
+
+export function login(username: string, password: string): Promise<{ token: string }> {
+  return request<{ token: string }>('/api/login', {
+    method: 'POST',
+    headers: JSON_HEADERS,
+    body: JSON.stringify({ username, password }),
   });
 }

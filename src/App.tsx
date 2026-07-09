@@ -1,10 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { CSSProperties } from 'react';
 import CandidateForm from './components/CandidateForm.js';
 import CandidateList from './components/CandidateList.js';
 import ConfirmDeleteModal from './components/ConfirmDeleteModal.js';
 import EvaluationModal from './components/EvaluationModal.js';
+import LoginScreen from './components/LoginScreen.js';
 import RankingList from './components/RankingList.js';
+import { clearStoredToken, getStoredToken } from './auth/session.js';
 import { useCandidates } from './hooks/useCandidates.js';
 
 type View = 'candidatos' | 'ranking';
@@ -48,6 +50,23 @@ const tabsWrapperStyle: CSSProperties = {
   borderRadius: 12,
   padding: 4,
   gap: 4,
+};
+
+const headerActionsStyle: CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 10,
+};
+
+const logoutButtonStyle: CSSProperties = {
+  padding: '9px 16px',
+  background: 'transparent',
+  border: '1px solid var(--border)',
+  borderRadius: 10,
+  color: 'var(--muted)',
+  fontSize: 13,
+  fontWeight: 600,
+  cursor: 'pointer',
 };
 
 const tabBaseStyle: CSSProperties = {
@@ -97,7 +116,7 @@ const retryButtonStyle: CSSProperties = {
   flexShrink: 0,
 };
 
-export default function App() {
+function ClassifierApp({ onLogout }: { onLogout: () => void }) {
   const { candidates, loading, error, refetch, addCandidate, removeCandidate, addEvaluation } = useCandidates();
   const [view, setView] = useState<View>('candidatos');
   const [evalFor, setEvalFor] = useState<string | null>(null);
@@ -126,15 +145,20 @@ export default function App() {
             Cadastre candidatos, registre até 4 avaliações por pessoa e acompanhe o ranking geral.
           </p>
         </div>
-        <div style={tabsWrapperStyle}>
-          <button
-            onClick={() => setView('candidatos')}
-            style={view === 'candidatos' ? tabActiveStyle : tabInactiveStyle}
-          >
-            Candidatos
-          </button>
-          <button onClick={() => setView('ranking')} style={view === 'ranking' ? tabActiveStyle : tabInactiveStyle}>
-            Ranking
+        <div style={headerActionsStyle}>
+          <div style={tabsWrapperStyle}>
+            <button
+              onClick={() => setView('candidatos')}
+              style={view === 'candidatos' ? tabActiveStyle : tabInactiveStyle}
+            >
+              Candidatos
+            </button>
+            <button onClick={() => setView('ranking')} style={view === 'ranking' ? tabActiveStyle : tabInactiveStyle}>
+              Ranking
+            </button>
+          </div>
+          <button onClick={onLogout} style={logoutButtonStyle}>
+            Sair
           </button>
         </div>
       </div>
@@ -181,4 +205,26 @@ export default function App() {
       )}
     </div>
   );
+}
+
+export default function App() {
+  const [authenticated, setAuthenticated] = useState(() => getStoredToken() !== null);
+
+  useEffect(() => {
+    function handleExpired(): void {
+      setAuthenticated(false);
+    }
+    window.addEventListener('auth:expired', handleExpired);
+    return () => window.removeEventListener('auth:expired', handleExpired);
+  }, []);
+
+  function handleLogout(): void {
+    clearStoredToken();
+    setAuthenticated(false);
+  }
+
+  if (!authenticated) {
+    return <LoginScreen onSuccess={() => setAuthenticated(true)} />;
+  }
+  return <ClassifierApp onLogout={handleLogout} />;
 }

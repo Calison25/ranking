@@ -1,3 +1,5 @@
+import { isAuthorizedHeader } from '../auth.js';
+import { handleLogin, unauthorized } from './auth.js';
 import type { CandidateStore } from '../storage/store.js';
 import {
   handleCreateCandidate,
@@ -16,10 +18,11 @@ const API_PREFIX = '/api/';
  * /api ou desconhecida), para que o chamador delegue ao proximo middleware.
  *
  * Rotas:
- *   GET    /api/candidates
- *   POST   /api/candidates
- *   DELETE /api/candidates/:id
- *   POST   /api/candidates/:id/evaluations
+ *   POST   /api/login                       (publica)
+ *   GET    /api/candidates                  (exige Authorization: Bearer <token>)
+ *   POST   /api/candidates                  (exige Authorization: Bearer <token>)
+ *   DELETE /api/candidates/:id              (exige Authorization: Bearer <token>)
+ *   POST   /api/candidates/:id/evaluations  (exige Authorization: Bearer <token>)
  *
  * Metodo errado numa rota conhecida => 405. Rota desconhecida/nao-/api => null.
  */
@@ -28,10 +31,24 @@ export async function dispatch(
   method: string,
   pathname: string,
   body: unknown,
+  authHeader?: string,
 ): Promise<ApiResult | null> {
   const segments = apiSegments(pathname);
-  if (!segments || segments[0] !== 'candidates') {
+  if (!segments) {
     return null;
+  }
+
+  // /api/login
+  if (segments.length === 1 && segments[0] === 'login') {
+    return method === 'POST' ? handleLogin(body) : methodNotAllowed();
+  }
+
+  if (segments[0] !== 'candidates') {
+    return null;
+  }
+
+  if (!isAuthorizedHeader(authHeader)) {
+    return unauthorized();
   }
 
   // /api/candidates

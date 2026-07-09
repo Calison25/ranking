@@ -1,5 +1,5 @@
 import type { IncomingMessage } from 'node:http';
-import { defineConfig, type Plugin } from 'vite';
+import { defineConfig, loadEnv, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import { dispatch } from './lib/http/router.js';
 import { sendJson } from './lib/http/send.js';
@@ -13,12 +13,18 @@ import { createMemoryStore } from './lib/storage/memoryStore.js';
  * mesmos handlers de producao via `dispatch`. Um memoryStore por instancia do
  * dev server mantem o estado entre requisicoes.
  */
-function devApiPlugin(): Plugin {
+function devApiPlugin(env: Record<string, string>): Plugin {
   return {
     name: 'dev-api',
     apply: 'serve',
     configureServer(server) {
       const store = createMemoryStore();
+
+      process.env.AUTH_USERNAME ??= env.AUTH_USERNAME;
+      process.env.AUTH_PASSWORD ??= env.AUTH_PASSWORD;
+      if (!process.env.AUTH_USERNAME || !process.env.AUTH_PASSWORD) {
+        console.warn('[auth] AUTH_USERNAME/AUTH_PASSWORD nao definidos no .env — API responde 401');
+      }
 
       server.middlewares.use((req, res, next) => {
         const url = req.url ?? '';
@@ -31,7 +37,7 @@ function devApiPlugin(): Plugin {
         const method = req.method ?? 'GET';
 
         readJsonBody(req)
-          .then((body) => dispatch(store, method, pathname, body))
+          .then((body) => dispatch(store, method, pathname, body, req.headers.authorization))
           .then((result) => {
             if (!result) {
               next();
@@ -66,10 +72,13 @@ function readJsonBody(req: IncomingMessage): Promise<unknown> {
   });
 }
 
-export default defineConfig({
-  plugins: [react(), devApiPlugin()],
-  test: {
-    environment: 'node',
-    include: ['src/**/*.test.{ts,tsx}', 'lib/**/*.test.{ts,tsx}', 'api/**/*.test.{ts,tsx}'],
-  },
+export default defineConfig(({ mode }) => {
+  const env = loadEnv(mode, process.cwd(), '');
+  return {
+    plugins: [react(), devApiPlugin(env)],
+    test: {
+      environment: 'node',
+      include: ['src/**/*.test.{ts,tsx}', 'lib/**/*.test.{ts,tsx}', 'api/**/*.test.{ts,tsx}'],
+    },
+  };
 });
