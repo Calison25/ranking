@@ -94,6 +94,18 @@ describe('RankingRow', () => {
     expect(container.textContent).not.toContain('Soft');
     expect(container.textContent).not.toContain('Hard');
 
+    // Bloco "% VAI AJUDAR": 1/2 = 50%, exibido em destaque, cor de alerta (voto negativo presente).
+    const pctEl = findByExactText(container, '50%');
+    expect(pctEl.style.color).toBe('var(--warn)');
+    expect(findByExactText(container, 'vai ajudar')).toBeTruthy();
+
+    // Pill ao lado do nome também usa a cor de alerta, pois há voto negativo (não é unanimidade).
+    const pillEl = findByExactText(container, '1/2 vai ajudar');
+    expect(pillEl.style.color).toBe('var(--warn)');
+
+    // Meta line evidencia o voto negativo.
+    expect(container.textContent).toContain('1 voto "não vai ajudar"');
+
     act(() => {
       findByExactText(container, 'Ver observações ▾').click();
     });
@@ -104,5 +116,56 @@ describe('RankingRow', () => {
     expect(container.textContent).toContain('Plano 3 · Prompt n/a · Modelos 4 · Web n/a · App 5');
     expect(container.textContent).toContain('Vai ajudar');
     expect(container.textContent).toContain('Não vai ajudar');
+  });
+
+  it('exibe 100% em verde e omite a nota de voto negativo quando todos os votos são "vai ajudar"', () => {
+    const candidateBase: CandidateWithEvaluations = {
+      id: 'c2',
+      nome: 'Rafael Souza',
+      linkedin: '',
+      createdAt: 1700000000000,
+      evaluations: [
+        makeEvaluation({
+          id: 'e1',
+          veredicto: 'ajuda',
+          date: 1700000000000,
+        }),
+      ],
+    };
+    const candidate = decorateCandidate(candidateBase);
+
+    act(() => {
+      root.render(<Harness candidate={candidate} />);
+    });
+
+    const pctEl = findByExactText(container, '100%');
+    expect(pctEl.style.color).toBe('var(--ac)');
+    expect(findByExactText(container, 'vai ajudar')).toBeTruthy();
+
+    const pillEl = findByExactText(container, '1/1 vai ajudar');
+    expect(pillEl.style.color).toBe('var(--ac)');
+
+    expect(container.textContent).not.toContain('não vai ajudar"');
+  });
+
+  it('usa plural correto na nota de votos negativos quando há mais de um', () => {
+    const candidateBase: CandidateWithEvaluations = {
+      id: 'c3',
+      nome: 'Gabriella Lima',
+      linkedin: '',
+      createdAt: 1700000000000,
+      evaluations: [
+        makeEvaluation({ id: 'e1', veredicto: 'nao_ajuda', date: 1700000000000 }),
+        makeEvaluation({ id: 'e2', veredicto: 'nao_ajuda', date: 1700000100000 }),
+        makeEvaluation({ id: 'e3', veredicto: 'ajuda', date: 1700000200000 }),
+      ],
+    };
+    const candidate = decorateCandidate(candidateBase);
+
+    act(() => {
+      root.render(<Harness candidate={candidate} />);
+    });
+
+    expect(container.textContent).toContain('2 votos "não vai ajudar"');
   });
 });

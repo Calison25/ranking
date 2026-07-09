@@ -30,6 +30,7 @@ const nameRowStyle: CSSProperties = { display: 'flex', alignItems: 'center', gap
 const nameStyle: CSSProperties = { fontWeight: 600, fontSize: 17, color: 'var(--ink)' };
 const metaStyle: CSSProperties = { fontSize: 13, color: 'var(--muted)', marginTop: 2 };
 
+const statsRowStyle: CSSProperties = { display: 'flex', gap: 20 };
 const valueWrapperStyle: CSSProperties = { textAlign: 'right' };
 const valueStyle: CSSProperties = { fontFamily: "'Newsreader', serif", fontSize: 31, lineHeight: 1, color: 'var(--ink)' };
 const valueUnitStyle: CSSProperties = {
@@ -39,6 +40,8 @@ const valueUnitStyle: CSSProperties = {
   letterSpacing: '.08em',
   marginTop: 1,
 };
+
+const metaWarnStyle: CSSProperties = { color: 'var(--warn)', fontWeight: 600 };
 
 const toggleLabelStyle: CSSProperties = {
   color: 'var(--ac)',
@@ -111,7 +114,10 @@ export default function RankingRow({ rank, candidate, expanded, onToggle }: Rank
   };
   const evaluationWord = candidate.count === 1 ? 'avaliação' : 'avaliações';
   const metaLabel = `${candidate.count} ${evaluationWord} · média ${round1(candidate.avg)}`;
-  const aggregateIsPositive = candidate.ajudaVotes * 2 >= candidate.count;
+  const negativeVotes = candidate.count - candidate.ajudaVotes;
+  const negativeVoteWord = negativeVotes === 1 ? 'voto' : 'votos';
+  const ajudaUnanimous = candidate.ajudaVotes === candidate.count;
+  const ajudaPctValue = Math.round(candidate.ajudaPct * 100);
 
   return (
     <div style={rowStyle}>
@@ -120,15 +126,29 @@ export default function RankingRow({ rank, candidate, expanded, onToggle }: Rank
         <div style={infoStyle}>
           <div style={nameRowStyle}>
             <span style={nameStyle}>{candidate.nome}</span>
-            <span style={pillStyle(aggregateIsPositive)}>
+            <span style={pillStyle(ajudaUnanimous)}>
               {formatAjudaAggregate(candidate.ajudaVotes, candidate.count)}
             </span>
           </div>
-          <div style={metaStyle}>{metaLabel}</div>
+          <div style={metaStyle}>
+            {metaLabel}
+            {negativeVotes > 0 && (
+              <span style={metaWarnStyle}>
+                {' '}
+                · {negativeVotes} {negativeVoteWord} "não vai ajudar"
+              </span>
+            )}
+          </div>
         </div>
-        <div style={valueWrapperStyle}>
-          <div style={valueStyle}>{candidate.total}</div>
-          <div style={valueUnitStyle}>pontos</div>
+        <div style={statsRowStyle}>
+          <div style={valueWrapperStyle}>
+            <div style={{ ...valueStyle, color: ajudaUnanimous ? 'var(--ac)' : 'var(--warn)' }}>{ajudaPctValue}%</div>
+            <div style={valueUnitStyle}>vai ajudar</div>
+          </div>
+          <div style={valueWrapperStyle}>
+            <div style={valueStyle}>{candidate.total}</div>
+            <div style={valueUnitStyle}>pontos</div>
+          </div>
         </div>
         <div style={toggleLabelStyle}>{expanded ? 'Ocultar observações ▲' : 'Ver observações ▾'}</div>
       </div>
